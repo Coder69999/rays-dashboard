@@ -45,8 +45,8 @@ load_info = {
     ],
     "Value": [
         f"{selected['Voltage Level']} kV",
-        f"{selected['Sanctioned Load (kVA)']:,.0f} kVA",
-        f"{selected['Contract Demand (kVA)']:,.0f} kVA",
+        f"{selected['Sanctioned Load (kVA)']:,.2f} kVA",
+        f"{selected['Contract Demand (kVA)']:,.2f} kVA",
         f"{get_percentage(selected['Average Load Factor']*100):.2f}%",
         f"{selected['Annual Consumption']:,.0f} kWh",
         f"{get_percentage(selected['6-10 PM Consumption'])*100 + get_percentage(selected['6-8 AM Consumption'])*100:.2f}% (6-10 PM + 6-8 AM)"
