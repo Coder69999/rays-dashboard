@@ -60,6 +60,7 @@ solar_info = {
         "Annual Setoff",
         "Green Energy Contribution"
     ],
+    
     "Value": [
         f"{selected.get('Installed Solar Capacity (AC)', 0):,.2f} MW",
         f"{selected.get('Installed Solar Capacity (DC)', 0):,.2f} MWp",
