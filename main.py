@@ -30,10 +30,9 @@ def get_percentage(value):
     except:
         return 0.0
 
-# Main title
 st.title(f"\U0001F4CA Client Overview: {client}")
 
-# Load Information Table
+# Load Info
 load_info = {
     "Parameter": [
         "Voltage Level",
@@ -53,7 +52,7 @@ load_info = {
     ]
 }
 
-# Solar Info Table with AC and DC Capacity
+# Solar Info
 solar_info = {
     "Parameter": [
         "Solar Capacity (AC)",
@@ -80,7 +79,9 @@ with col1:
     st.markdown(
         df_load.to_html(index=False, escape=False, formatters={
             "Value": lambda x: f"<span style='color:#e67300;font-weight:bold'>{x}</span>"
-        }),
+        }).replace(
+            '<th>', '<th style="text-align:center; background-color:#f0f0f0; color:#000;">'
+        ),
         unsafe_allow_html=True
     )
 
