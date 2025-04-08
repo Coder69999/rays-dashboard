@@ -7,7 +7,7 @@ import altair as alt
 # Load and clean data
 @st.cache_data
 def load_data():
-    data_path = "D-V1.xlsx"
+    data_path = "D-V3.xlsx"
     sheet_name = "Sheet1"
     df = pd.read_excel(data_path, sheet_name=sheet_name)
     df.columns = df.columns.str.strip()
