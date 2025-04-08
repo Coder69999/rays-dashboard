@@ -58,24 +58,29 @@ load_info = {
 }
 
 solar_info = {
-    "Parameter": [
-        "Installed Solar Capacity",
-        "Annual Setoff",
-        "Green Energy Contribution",
-        "Solar Utilization" if 'Solar Utilization' in selected else "",
-        "Solar ROI" if 'Solar ROI' in selected else ""
-    ],
-    "Value": [
-        f"{selected['Installed Solar Capacity (DC)']:,.0f} kW",
-        f"{selected['Annual Setoff']:,.0f} kWh",
-        f"{get_percentage(selected['Percent Green Consumption'])*100:.2f}%",
-        f"{get_percentage(selected['Solar Utilization']):.2f}%" if 'Solar Utilization' in selected else "",
-        f"{get_percentage(selected['Solar ROI']):.2f}%" if 'Solar ROI' in selected else ""
-    ]
+    "Parameter": [],
+    "Value": []
 }
 
+# Always present fields
+solar_info["Parameter"].extend(["Installed Solar Capacity", "Annual Setoff", "Green Energy Contribution"])
+solar_info["Value"].extend([
+    f"{selected['Installed Solar Capacity (DC)']:,.0f} kW",
+    f"{selected['Annual Setoff']:,.0f} kWh",
+    f"{get_percentage(selected['Percent Green Consumption'])*100:.2f}%"
+])
+
+# Conditionally add optional fields
+if 'Solar Utilization' in selected and pd.notna(selected['Solar Utilization']):
+    solar_info["Parameter"].append("Solar Utilization")
+    solar_info["Value"].append(f"{get_percentage(selected['Solar Utilization']):.2f}%")
+
+if 'Solar ROI' in selected and pd.notna(selected['Solar ROI']):
+    solar_info["Parameter"].append("Solar ROI")
+    solar_info["Value"].append(f"{get_percentage(selected['Solar ROI']):.2f}%")
+
 df_load = pd.DataFrame(load_info)
-df_solar = pd.DataFrame(solar_info).dropna()
+df_solar = pd.DataFrame(solar_info)
 
 # Columns for tables
 col1, col_sep, col2 = st.columns([6, 0.1, 6])
@@ -93,7 +98,7 @@ with col_sep:
     st.markdown("<div style='height:100%; border-left: 3px solid #bbb;'></div>", unsafe_allow_html=True)
 
 with col2:
-    st.subheader("\U0001F31E Existing Solar Setup & Setoff")
+    st.subheader("\U0001F31E Existing Solar Setup")
     st.markdown(
         df_solar.to_html(index=False, escape=False, formatters={
             "Value": lambda x: f"<span style='color:#e67300;font-weight:bold'>{x}</span>"
