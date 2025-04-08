@@ -45,8 +45,8 @@ load_info = {
     ],
     "Value": [
         f"{selected['Voltage Level']} kV",
-        f"{selected['Sanctioned Load (kVA)']:,.2f} kVA",
-        f"{selected['Contract Demand (kVA)']:,.2f} kVA",
+        f"{selected['Sanctioned Load (kVA)']:,.2f} mVA",
+        f"{selected['Contract Demand (kVA)']:,.2f} mVA",
         f"{get_percentage(selected['Average Load Factor']*100):.2f}%",
         f"{selected['Annual Consumption']:,.0f} kWh",
         f"{get_percentage(selected['6-10 PM Consumption'])*100 + get_percentage(selected['6-8 AM Consumption'])*100:.2f}% (6-10 PM + 6-8 AM)"
@@ -62,8 +62,8 @@ solar_info = {
         "Green Energy Contribution"
     ],
     "Value": [
-        f"{selected.get('Installed Solar Capacity (AC)', 0):,.2f} kW",
-        f"{selected.get('Installed Solar Capacity (DC)', 0):,.2f} kW",
+        f"{selected.get('Installed Solar Capacity (AC)', 0):,.2f} MW",
+        f"{selected.get('Installed Solar Capacity (DC)', 0):,.2f} MWp",
         f"{selected['Annual Setoff']:,.0f} kWh",
         f"{get_percentage(selected['Percent Green Consumption'])*100:.2f}%"
     ]
