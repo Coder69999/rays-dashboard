@@ -207,10 +207,29 @@ st.markdown(
 
 # ... (Rest of the code remains the same) ...
 # ROI Analysis
+# ... (All previous code remains the same until the ROI Analysis section) ...
+
+# ROI Analysis
 st.title("\U0001F4C8 ROI Analysis")
 
-bess_pct = st.sidebar.slider("Select BESS Size (% of Solar)", 5, 30, 10)
-waiver_pct = st.sidebar.slider("Charge Waiver (%) with BESS", 75, 100, 75)
+# New BESS capacity slider with multiples of 5%
+bess_pct = st.sidebar.select_slider(
+    "Select BESS Size (% of Solar)",
+    options=[5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80, 85, 90, 95, 100],
+    value=10
+)
+
+# Calculate waiver percentage based on BESS capacity
+if bess_pct < 30:
+    waiver_pct = 75 + (bess_pct // 5 - 1) * 5  # 5% steps from 75% to 100%
+else:
+    waiver_pct = 100  # 100% for 30% and above
+
+# Display waiver percentage as a non-interactive metric
+st.sidebar.markdown(f"""
+**Transmission Charge Waiver**  
+<span style='font-size:24px; color:#4CAF50'>{waiver_pct}%</span>
+""", unsafe_allow_html=True)
 
 capex_solar_per_mw = 3.5e6
 capex_bess_per_mw = 4.0e6
