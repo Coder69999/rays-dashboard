@@ -3,6 +3,7 @@ import pandas as pd
 import numpy as np
 import altair as alt
 
+
 # Load and clean data
 @st.cache_data
 def load_data():
