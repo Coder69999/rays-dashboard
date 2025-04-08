@@ -48,8 +48,8 @@ with col1:
     st.write(f"**Annual Consumption:** {selected['Annual Consumption']:,.0f} kWh")
 
     try:
-        pm = get_percentage(selected['6-10 PM Consumption'])
-        am = get_percentage(selected['6-8 AM Consumption'])
+        pm = selected['6-10 PM Consumption']
+        am = selected['6-8 AM Consumption']
         st.write(f"**Peak Hour Consumption:** {pm + am:.2f}% (6-10 PM + 6-8 AM)")
     except:
         st.warning("Peak hour data not available.")
@@ -63,7 +63,7 @@ with col_sep:
     )
 
 with col2:
-    st.subheader("\U0001F31E Existing Solar Setup & Setoff")
+    st.subheader("\U0001F31E Existing Solar Setup")
     st.write(f"**Installed Solar Capacity:** {selected['Installed Solar Capacity (DC)']:,.0f} kW")
     st.write(f"**Annual Setoff:** {selected['Annual Setoff']:,.0f} kWh")
     st.write(f"**Green Energy Contribution:** {get_percentage(selected['Percent Green Consumption']):.2f}%")
