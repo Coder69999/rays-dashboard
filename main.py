@@ -65,11 +65,14 @@ if 'Solar ROI' in selected and pd.notna(selected['Solar ROI']):
 df_load = pd.DataFrame(load_info)
 df_solar = pd.DataFrame(solar_info)
 
+# Style to center headers and darken background
 table_style = """
 <style>
 thead th {
     text-align: center !important;
-    background-color: #f2f2f2 !important;
+    background-color: #1e1e1e !important;
+    color: white !important;
+    font-weight: bold !important;
 }
 td {
     text-align: left;
