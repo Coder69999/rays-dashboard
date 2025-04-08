@@ -3,11 +3,10 @@ import pandas as pd
 import numpy as np
 import altair as alt
 
-
 # Load and clean data
 @st.cache_data
 def load_data():
-    data_path = "D-V3.xlsx"
+    data_path = "D-V4.xlsx"
     sheet_name = "Sheet1"
     df = pd.read_excel(data_path, sheet_name=sheet_name)
     df.columns = df.columns.str.strip()
@@ -45,8 +44,8 @@ load_info = {
     ],
     "Value": [
         f"{selected['Voltage Level']} kV",
-        f"{selected['Sanctioned Load (kVA)']:,.2f} mVA",
-        f"{selected['Contract Demand (kVA)']:,.2f} mVA",
+        f"{selected['Sanctioned Load (mVA)']:,.2f} mVA",
+        f"{selected['Contract Demand (mVA)']:,.2f} mVA",
         f"{get_percentage(selected['Average Load Factor']*100):.2f}%",
         f"{selected['Annual Consumption']:,.0f} kWh",
         f"{get_percentage(selected['6-10 PM Consumption'])*100 + get_percentage(selected['6-8 AM Consumption'])*100:.2f}% (6-10 PM + 6-8 AM)"
@@ -102,16 +101,14 @@ with col2:
 
 st.markdown("""<hr style="height:5px;border:none;color:#333;background-color:#333;" /> """, unsafe_allow_html=True)
 
-# ... (Previous code remains the same until the Opportunities Table section) ...
-
 # --- New Opportunities Table Section ---
 st.title("\U0001F4A1 Available Opportunities")
 
 # Get solar capacities (default to 0 if not available)
 solar_ac = selected.get('Installed Solar Capacity (AC)', 0)
 solar_dc = selected.get('Installed Solar Capacity (DC)', 0)
-contract_demand = selected['Contract Demand (kVA)']
-sanctioned_load = selected['Sanctioned Load (kVA)']
+contract_demand = selected['Contract Demand (mVA)']
+sanctioned_load = selected['Sanctioned Load (mVA)']
 
 # Calculate available contract demand (Opportunity 1)
 available_cd_ac = contract_demand - solar_ac
@@ -151,7 +148,7 @@ if (sanctioned_load > contract_demand) and (available_sl_pct >= 20):
         "Available AC Capacity (kW)": f"{opportunity2_ac:,.2f}",
         "Recommended DC Capacity (kW)": f"{opportunity2_dc:,.2f}",
         "Status": "Available" if opportunity2_ac > 0 else "Not Available",
-        "CD Increase Required": f"{(sanctioned_load - contract_demand):,.2f} kVA"
+        "CD Increase Required": f"{(sanctioned_load - contract_demand):,.2f} mVA"
     })
 else:
     reason = ""
@@ -165,7 +162,7 @@ else:
         "Available AC Capacity (kW)": f"{available_sl_ac:,.2f}",
         "Recommended DC Capacity (kW)": f"N/A ({reason})",
         "Status": "Not Viable",
-        "CD Increase Required": f"{(sanctioned_load - contract_demand):,.2f} kVA" if sanctioned_load > contract_demand else "N/A"
+        "CD Increase Required": f"{(sanctioned_load - contract_demand):,.2f} mVA" if sanctioned_load > contract_demand else "N/A"
     })
 
 # Add other opportunities (placeholders for now)
@@ -205,14 +202,7 @@ st.markdown(
     unsafe_allow_html=True
 )
 
-# ... (Rest of the code remains the same) ...
-# ROI Analysis
-# ... (All previous code remains the same until the ROI Analysis section) ...
-
-
-
-# New BESS capacity slider with multiples of 5%
-# ... (All previous code remains the same until the ROI Analysis section) ...
+st.markdown("""<hr style="height:5px;border:none;color:#333;background-color:#333;" /> """, unsafe_allow_html=True)
 
 # ROI Analysis
 st.title("\U0001F4C8 ROI Analysis")
@@ -238,8 +228,6 @@ st.sidebar.markdown(f"""
 <span style='font-size:24px; color:#4CAF50'>{waiver_pct}%</span>
 """, unsafe_allow_html=True)
 
-# ... (Rest of the code remains exactly the same) ...
-
 capex_solar_per_mw = 3.5e6
 capex_bess_per_mw = 4.0e6
 solar_gen_per_mw = 16.5e5
@@ -249,7 +237,7 @@ wind_gen_per_mw = 26.0e5
 
 try:
     available_cd = contract_demand/1000 - solar_ac/1000
-    available_sl = selected['Sanctioned Load (kVA)']/1000 - solar_ac/1000
+    available_sl = selected['Sanctioned Load (mVA)']/1000 - solar_ac/1000
 
     base_tariff = selected['Base Tariff']
 
