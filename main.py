@@ -9,35 +9,26 @@ def load_data():
     data_path = "D-V1.xlsx"
     sheet_name = "Sheet1"
     df = pd.read_excel(data_path, sheet_name=sheet_name)
-
-    # Clean column names - handle spaces and special characters
     df.columns = df.columns.str.strip()
-
-    # Convert percentage columns to numeric values
     percent_cols = ['Average Load Factor', '6-10 PM Consumption', '6-8 AM Consumption', 'Percent Green Consumption']
     for col in percent_cols:
         if col in df.columns:
             df[col] = df[col].astype(str).str.replace('%', '').astype(float)
-
     return df
 
 df = load_data()
 
-# Sidebar for client selection
 client = st.sidebar.selectbox("Select Client", df['Client Name'].unique())
 selected = df[df['Client Name'] == client].iloc[0]
 
-# Helper function to safely get percentage values
 def get_percentage(value):
     try:
         return float(str(value).replace('%', ''))
     except:
         return 0.0
 
-# Main display
 st.title(f"\U0001F4CA Client Overview: {client}")
 
-# Prepare data for table display
 load_info = {
     "Parameter": [
         "Voltage Level",
@@ -57,24 +48,16 @@ load_info = {
     ]
 }
 
-solar_info = {
-    "Parameter": [],
-    "Value": []
-}
-
-# Always present fields
+solar_info = {"Parameter": [], "Value": []}
 solar_info["Parameter"].extend(["Installed Solar Capacity", "Annual Setoff", "Green Energy Contribution"])
 solar_info["Value"].extend([
     f"{selected['Installed Solar Capacity (DC)']:,.0f} kW",
     f"{selected['Annual Setoff']:,.0f} kWh",
     f"{get_percentage(selected['Percent Green Consumption'])*100:.2f}%"
 ])
-
-# Conditionally add optional fields
 if 'Solar Utilization' in selected and pd.notna(selected['Solar Utilization']):
     solar_info["Parameter"].append("Solar Utilization")
     solar_info["Value"].append(f"{get_percentage(selected['Solar Utilization']):.2f}%")
-
 if 'Solar ROI' in selected and pd.notna(selected['Solar ROI']):
     solar_info["Parameter"].append("Solar ROI")
     solar_info["Value"].append(f"{get_percentage(selected['Solar ROI']):.2f}%")
@@ -82,49 +65,58 @@ if 'Solar ROI' in selected and pd.notna(selected['Solar ROI']):
 df_load = pd.DataFrame(load_info)
 df_solar = pd.DataFrame(solar_info)
 
-# Columns for tables
+table_style = """
+<style>
+table {
+    width: 100%;
+    border-collapse: collapse;
+}
+thead th {
+    text-align: center !important;
+    background-color: #f0f0f0;
+    font-weight: bold;
+}
+td {
+    text-align: center;
+    padding: 8px;
+}
+</style>
+"""
+
 col1, col_sep, col2 = st.columns([6, 0.1, 6])
 
 with col1:
     st.subheader("\u26A1 Basic Load Information")
-    st.markdown(
-        df_load.to_html(index=False, escape=False, formatters={
-            "Value": lambda x: f"<span style='color:#e67300;font-weight:bold'>{x}</span>"
-        }),
-        unsafe_allow_html=True
-    )
+    st.markdown(table_style + df_load.to_html(index=False, escape=False, formatters={
+        "Value": lambda x: f"<span style='color:#e67300;font-weight:bold'>{x}</span>"
+    }), unsafe_allow_html=True)
 
 with col_sep:
     st.markdown("<div style='height:100%; border-left: 3px solid #bbb;'></div>", unsafe_allow_html=True)
 
 with col2:
     st.subheader("\U0001F31E Existing Solar Setup")
-    st.markdown(
-        df_solar.to_html(index=False, escape=False, formatters={
-            "Value": lambda x: f"<span style='color:#e67300;font-weight:bold'>{x}</span>"
-        }),
-        unsafe_allow_html=True
-    )
+    st.markdown(table_style + df_solar.to_html(index=False, escape=False, formatters={
+        "Value": lambda x: f"<span style='color:#e67300;font-weight:bold'>{x}</span>"
+    }), unsafe_allow_html=True)
 
 st.markdown("""<hr style="height:5px;border:none;color:#333;background-color:#333;" /> """, unsafe_allow_html=True)
 
-# --- ROI Analysis Section ---
+# ROI Analysis Section
 st.title("\U0001F4C8 ROI Analysis")
-
 bess_pct = st.sidebar.slider("Select BESS Size (% of Solar)", 5, 30, 10)
 waiver_pct = st.sidebar.slider("Charge Waiver (%) with BESS", 75, 100, 75)
 
 capex_solar_per_mw = 3.5e6
 capex_bess_per_mw = 4.0e6
-solar_gen_per_mw = 16.5e5  # kWh/year
-bess_impact_rate = 0.91 + 0.74  # ₹/unit baseline charge
+solar_gen_per_mw = 16.5e5
+bess_impact_rate = 0.91 + 0.74
 wind_capex_per_mw = 6.5e6
 wind_gen_per_mw = 26.0e5
 
 try:
     available_cd = selected['Contract Demand (kVA)']/1000 - selected['Installed Solar Capacity (DC)']/1000
     available_sl = selected['Sanctioned Load (kVA)']/1000 - selected['Installed Solar Capacity (DC)']/1000
-
     base_tariff = selected['Base Tariff']
 
     solar_to_cd_roi = ((available_cd * solar_gen_per_mw * base_tariff) / (available_cd * capex_solar_per_mw)) if available_cd > 0 else 0
