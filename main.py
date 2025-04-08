@@ -34,6 +34,10 @@ def get_percentage(value):
     except:
         return 0.0
 
+# Color styling function
+def red_text(val):
+    return f"<span style='color:#d62728;font-weight:bold'>{val}</span>"
+
 # Main display
 st.title(f"\U0001F4CA Client Overview: {client}")
 
@@ -42,16 +46,17 @@ col1, col_sep, col2 = st.columns([5, 0.5, 5])
 
 with col1:
     st.subheader("\u26A1 Basic Load Information")
-    st.write(f"**Voltage Level:** {selected['Voltage Level']} kV")
-    st.write(f"**Sanctioned Load:** {selected['Sanctioned Load (kVA)']:,.0f} kVA")
-    st.write(f"**Contract Demand:** {selected['Contract Demand (kVA)']:,.0f} kVA")
-    st.write(f"**Average Load Factor:** {get_percentage(selected['Average Load Factor']*100):.2f}%")
-    st.write(f"**Annual Consumption:** {selected['Annual Consumption']:,.0f} kWh")
+    st.markdown(f"**Voltage Level:** {red_text(selected['Voltage Level'])} kV", unsafe_allow_html=True)
+    st.markdown(f"**Sanctioned Load:** {red_text(f'{selected['Sanctioned Load (kVA)']:,.0f}')} kVA", unsafe_allow_html=True)
+    st.markdown(f"**Contract Demand:** {red_text(f'{selected['Contract Demand (kVA)']:,.0f}')} kVA", unsafe_allow_html=True)
+    st.markdown(f"**Average Load Factor:** {red_text(f'{get_percentage(selected['Average Load Factor']*100):.2f}%')}", unsafe_allow_html=True)
+    st.markdown(f"**Annual Consumption:** {red_text(f'{selected['Annual Consumption']:,.0f}')} kWh", unsafe_allow_html=True)
 
     try:
-        pm = get_percentage(selected['6-10 PM Consumption'])*100
-        am = get_percentage(selected['6-8 AM Consumption'])*100
-        st.write(f"**Peak Hour Consumption:** {pm + am:.2f}% (6-10 PM + 6-8 AM)")
+        pm = get_percentage(selected['6-10 PM Consumption']) * 100
+        am = get_percentage(selected['6-8 AM Consumption']) * 100
+        total_peak = f"{pm + am:.2f}%"
+        st.markdown(f"**Peak Hour Consumption:** {red_text(total_peak)} (6-10 PM + 6-8 AM)", unsafe_allow_html=True)
     except:
         st.warning("Peak hour data not available.")
 
@@ -65,15 +70,15 @@ with col_sep:
 
 with col2:
     st.subheader("\U0001F31E Existing Solar Setup & Setoff")
-    st.write(f"**Installed Solar Capacity:** {selected['Installed Solar Capacity (DC)']:,.0f} kW")
-    st.write(f"**Annual Setoff:** {selected['Annual Setoff']:,.0f} kWh")
-    st.write(f"**Green Energy Contribution:** {get_percentage(selected['Percent Green Consumption'])*100:.2f}%")
+    st.markdown(f"**Installed Solar Capacity:** {red_text(f'{selected['Installed Solar Capacity (DC)']:,.0f}')} kW", unsafe_allow_html=True)
+    st.markdown(f"**Annual Setoff:** {red_text(f'{selected['Annual Setoff']:,.0f}')} kWh", unsafe_allow_html=True)
+    st.markdown(f"**Green Energy Contribution:** {red_text(f'{get_percentage(selected['Percent Green Consumption'])*100:.2f}%')}", unsafe_allow_html=True)
 
     if 'Solar Utilization' in selected:
-        st.write(f"**Solar Utilization:** {get_percentage(selected['Solar Utilization']):.2f}%")
+        st.markdown(f"**Solar Utilization:** {red_text(f'{get_percentage(selected['Solar Utilization']):.2f}%')}", unsafe_allow_html=True)
 
     if 'Solar ROI' in selected:
-        st.write(f"**Solar ROI:** {get_percentage(selected['Solar ROI']):.2f}%")
+        st.markdown(f"**Solar ROI:** {red_text(f'{get_percentage(selected['Solar ROI']):.2f}%')}", unsafe_allow_html=True)
 
 st.markdown("""<hr style="height:5px;border:none;color:#333;background-color:#333;" /> """, unsafe_allow_html=True)
 
