@@ -67,18 +67,12 @@ df_solar = pd.DataFrame(solar_info)
 
 table_style = """
 <style>
-table {
-    width: 100%;
-    border-collapse: collapse;
-}
 thead th {
     text-align: center !important;
-    background-color: #f0f0f0;
-    font-weight: bold;
+    background-color: #f2f2f2 !important;
 }
 td {
-    text-align: center;
-    padding: 8px;
+    text-align: left;
 }
 </style>
 """
