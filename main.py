@@ -66,7 +66,7 @@ with col2:
     st.subheader("\U0001F31E Existing Solar Setup")
     st.write(f"**Installed Solar Capacity:** {selected['Installed Solar Capacity (DC)']:,.0f} kW")
     st.write(f"**Annual Setoff:** {selected['Annual Setoff']:,.0f} kWh")
-    st.write(f"**Green Energy Contribution:** {get_percentage(selected['Percent Green Consumption']):.2f}%")
+    st.write(f"**Green Energy Contribution:** {selected['Percent Green Consumption']:.2f}%")
 
     if 'Solar Utilization' in selected:
         st.write(f"**Solar Utilization:** {get_percentage(selected['Solar Utilization']):.2f}%")
