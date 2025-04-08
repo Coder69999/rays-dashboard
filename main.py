@@ -10,15 +10,14 @@ def load_data():
     sheet_name = "Sheet1"
     df = pd.read_excel(data_path, sheet_name=sheet_name)
     
-    # Clean column names
-    df.columns = df.columns.str.strip()  # Remove whitespace
-    df.columns = df.columns.str.replace(' ', '_')  # Replace spaces with underscores
-    df.columns = df.columns.str.replace('[^a-zA-Z0-9_]', '', regex=True)  # Remove special chars
+    # Clean column names - handle spaces and special characters
+    df.columns = df.columns.str.strip()
     
-    # Convert percentage strings to numeric values
-    percent_cols = [col for col in df.columns if '%' in col or 'Percent' in col]
+    # Convert percentage columns to numeric values
+    percent_cols = ['Average Load Factor', '6-10 PM Consumption', '6-8 AM Consumption', 'Percent Green Consumption']
     for col in percent_cols:
-        df[col] = df[col].astype(str).str.replace('%', '').astype(float) / 100
+        if col in df.columns:
+            df[col] = df[col].astype(str).str.replace('%', '').astype(float)
     
     return df
 
@@ -28,58 +27,63 @@ df = load_data()
 # st.write("Available columns:", df.columns.tolist())
 
 # Sidebar for client selection
-client = st.sidebar.selectbox("Select Client", df['Client_Name'].unique())
-selected = df[df['Client_Name'] == client].iloc[0]
+client = st.sidebar.selectbox("Select Client", df['Client Name'].unique())
+selected = df[df['Client Name'] == client].iloc[0]
+
+# Helper function to safely get percentage values
+def get_percentage(value):
+    if isinstance(value, str):
+        return float(value.replace('%', ''))
+    return float(value)
 
 # Main display
 st.title(f"📊 Client Overview: {client}")
 
-# First section - Basic info
+# First section - Basic info (grouped together)
+st.subheader("Basic Information")
 col1, col2, col3 = st.columns(3)
 with col1:
-    st.subheader("Voltage Level")
-    st.write(f"{selected['Voltage_Level']} kV")
+    st.write(f"**Voltage Level**  \n{selected['Voltage Level']} kV")
     
 with col2:
-    st.subheader("Sanctioned Load")
-    st.write(f"{selected['Sanctioned_Load_kVA']:,.0f} kVA")
+    st.write(f"**Sanctioned Load**  \n{selected['Sanctioned Load (kVA)']:,.0f} kVA")
     
 with col3:
-    st.subheader("Contract Demand")
-    st.write(f"{selected['Contract_Demand_kVA']:,.0f} kVA")
+    st.write(f"**Contract Demand**  \n{selected['Contract Demand (kVA)']:,.0f} kVA")
 
-# Second section - Load and consumption
+# Horizontal separator line
 st.markdown("---")
-col1, col2 = st.columns(2)
 
+# Second section - Load and consumption (grouped together)
+st.subheader("Load Information")
+col1, col2 = st.columns(2)
 with col1:
-    st.subheader("Average Load Factor")
-    st.write(f"{selected['Average_Load_Factor']*100:.2f}%")
-    
-    st.subheader("Annual Consumption")
-    st.write(f"{selected['Annual_Consumption']:,.0f} kWh")
+    st.write(f"**Average Load Factor**  \n{get_percentage(selected['Average Load Factor']):.2f}%")
+    st.write(f"**Annual Consumption**  \n{selected['Annual Consumption']:,.0f} kWh")
     
     # Calculate and display peak hour consumption
-    pm_consumption = selected['6-10_PM_Consumption']
-    am_consumption = selected['6-8_AM_Consumption']
-    peak_pct = (pm_consumption + am_consumption) * 100
-    st.subheader("Peak Hour Consumption")
-    st.write(f"{peak_pct:.2f}% (6-10 PM + 6-8 AM)")
+    try:
+        pm_consumption = get_percentage(selected['6-10 PM Consumption'])
+        am_consumption = get_percentage(selected['6-8 AM Consumption'])
+        peak_pct = pm_consumption + am_consumption
+        st.write(f"**Peak Hour Consumption**  \n{peak_pct:.2f}% (6-10 PM + 6-8 AM)")
+    except KeyError as e:
+        st.error(f"Missing data column: {e}")
 
+# Horizontal separator line
+st.markdown("---")
+
+# Third section - Solar metrics (grouped together)
+st.subheader("Solar Information")
+col1, col2, col3 = st.columns(3)
+with col1:
+    st.write(f"**Installed Solar**  \n{selected['Installed Solar Capacity (DC)']} kW")
 with col2:
-    # Solar metrics in a horizontal layout
-    cols = st.columns(3)
-    with cols[0]:
-        st.subheader("Installed Solar")
-        st.write(f"{selected['Installed_Solar_Capacity_DC']} kW")
-    with cols[1]:
-        st.subheader("Annual Setoff")
-        st.write(f"{selected['Annual_Setoff']:,.0f} kWh")
-    with cols[2]:
-        st.subheader("Green %")
-        st.write(f"{selected['Percent_Green_Consumption']*100:.2f}%")
+    st.write(f"**Annual Setoff**  \n{selected['Annual Setoff']:,.0f} kWh")
+with col3:
+    st.write(f"**Green %**  \n{get_percentage(selected['Percent Green Consumption']):.2f}%")
 
-# Add a separator line
+# Horizontal separator line
 st.markdown("---")
 
 # --- ROI Analysis Section ---
@@ -98,20 +102,28 @@ wind_capex_per_mw = 6.5e6
 wind_gen_per_mw = 26.0e5
 
 # Calculations
-available_cd = selected['Contract_Demand_kVA']/1000 - selected['Installed_Solar_Capacity_DC']/1000
-available_sl = selected['Sanctioned_Load_kVA']/1000 - selected['Installed_Solar_Capacity_DC']/1000
-solar_to_cd_roi = ((available_cd * solar_gen_per_mw * selected['Base_Tariff']) / (available_cd * capex_solar_per_mw)) if available_cd > 0 else 0
-solar_to_sl_roi = ((available_sl * solar_gen_per_mw * selected['Base_Tariff']) / (available_sl * capex_solar_per_mw)) if available_sl > 0 else 0
+try:
+    available_cd = selected['Contract Demand (kVA)']/1000 - selected['Installed Solar Capacity (DC)']/1000
+    available_sl = selected['Sanctioned Load (kVA)']/1000 - selected['Installed Solar Capacity (DC)']/1000
+    
+    base_tariff = selected['Base Tariff']
+    
+    solar_to_cd_roi = ((available_cd * solar_gen_per_mw * base_tariff) / (available_cd * capex_solar_per_mw)) if available_cd > 0 else 0
+    solar_to_sl_roi = ((available_sl * solar_gen_per_mw * base_tariff) / (available_sl * capex_solar_per_mw)) if available_sl > 0 else 0
 
-# BESS
-bess_mw = selected['Installed_Solar_Capacity_DC']/1000 * bess_pct / 100
-bess_waiver_saving = selected['Annual_Consumption'] * (bess_impact_rate * waiver_pct / 100)
-bess_roi = (bess_waiver_saving / (bess_mw * capex_bess_per_mw)) if bess_mw > 0 else 0
+    # BESS
+    bess_mw = selected['Installed Solar Capacity (DC)']/1000 * bess_pct / 100
+    bess_waiver_saving = selected['Annual Consumption'] * (bess_impact_rate * waiver_pct / 100)
+    bess_roi = (bess_waiver_saving / (bess_mw * capex_bess_per_mw)) if bess_mw > 0 else 0
 
-# Wind
-wind_mw = selected['Contract_Demand_kVA']/1000
-wind_saving = wind_mw * wind_gen_per_mw * selected['Base_Tariff']
-wind_roi = wind_saving / (wind_mw * wind_capex_per_mw)
+    # Wind
+    wind_mw = selected['Contract Demand (kVA)']/1000
+    wind_saving = wind_mw * wind_gen_per_mw * base_tariff
+    wind_roi = wind_saving / (wind_mw * wind_capex_per_mw)
+
+except KeyError as e:
+    st.error(f"Missing required data column: {e}")
+    st.stop()
 
 # ROI Chart
 roi_data = pd.DataFrame({
