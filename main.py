@@ -99,6 +99,40 @@ with col2:
 
 st.markdown("""<hr style="height:5px;border:none;color:#333;background-color:#333;" /> """, unsafe_allow_html=True)
 
+st.title("🔍 Extension Opportunities")
+
+solar_to_cd_mw = max(0, available_cd)
+solar_to_sl_mw = max(0, available_sl)
+bess_mw_display = round(bess_mw, 2)
+wind_mw = selected['Contract Demand (kVA)'] / 1000
+
+extension_options = pd.DataFrame({
+    "Option": ["Solar to CD", "Solar to SL", f"BESS ({bess_pct}%)", "Wind"],
+    "Capacity (MW)": [
+        round(solar_to_cd_mw, 2),
+        round(solar_to_sl_mw, 2),
+        bess_mw_display,
+        round(wind_mw, 2)
+    ]
+})
+
+# Optional formatting
+extension_style = """
+<style>
+thead th {
+    text-align: center !important;
+    background-color: #1e1e1e !important;
+    color: white !important;
+    font-weight: bold !important;
+}
+td {
+    text-align: center;
+}
+</style>
+"""
+
+st.markdown(extension_style + extension_options.to_html(index=False), unsafe_allow_html=True)
+
 # ROI Analysis Section
 st.title("\U0001F4C8 ROI Analysis")
 bess_pct = st.sidebar.slider("Select BESS Size (% of Solar)", 5, 30, 10)
