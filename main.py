@@ -99,24 +99,34 @@ with col2:
 
 st.markdown("""<hr style="height:5px;border:none;color:#333;background-color:#333;" /> """, unsafe_allow_html=True)
 
+try:
+    available_cd = selected['Contract Demand (kVA)']/1000 - selected['Installed Solar Capacity (DC)']/1000
+    available_sl = selected['Sanctioned Load (kVA)']/1000 - selected['Installed Solar Capacity (DC)']/1000
+
+    base_tariff = selected['Base Tariff']
+
+    bess_mw = selected['Installed Solar Capacity (DC)']/1000 * bess_pct / 100
+    wind_mw = selected['Contract Demand (kVA)']/1000
+
+except KeyError as e:
+    st.error(f"Missing required data column: {e}")
+    st.stop()
 st.title("🔍 Extension Opportunities")
 
 solar_to_cd_mw = max(0, available_cd)
 solar_to_sl_mw = max(0, available_sl)
-bess_mw_display = round(bess_mw, 2)
-wind_mw = selected['Contract Demand (kVA)'] / 1000
 
 extension_options = pd.DataFrame({
     "Option": ["Solar to CD", "Solar to SL", f"BESS ({bess_pct}%)", "Wind"],
     "Capacity (MW)": [
         round(solar_to_cd_mw, 2),
         round(solar_to_sl_mw, 2),
-        bess_mw_display,
+        round(bess_mw, 2),
         round(wind_mw, 2)
     ]
 })
 
-# Optional formatting
+# Optional table styling
 extension_style = """
 <style>
 thead th {
@@ -132,6 +142,7 @@ td {
 """
 
 st.markdown(extension_style + extension_options.to_html(index=False), unsafe_allow_html=True)
+
 
 # ROI Analysis Section
 st.title("\U0001F4C8 ROI Analysis")
