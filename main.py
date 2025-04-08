@@ -10,10 +10,10 @@ def load_data():
     sheet_name = "Sheet1"
     df = pd.read_excel(data_path, sheet_name=sheet_name)
 
-    # Clean column names
+    # Clean column names - handle spaces and special characters
     df.columns = df.columns.str.strip()
 
-    # Convert percentage columns to numeric
+    # Convert percentage columns to numeric values
     percent_cols = ['Average Load Factor', '6-10 PM Consumption', '6-8 AM Consumption', 'Percent Green Consumption']
     for col in percent_cols:
         if col in df.columns:
@@ -22,26 +22,25 @@ def load_data():
     return df
 
 df = load_data()
-st.write("Available columns:", df.columns.tolist())  # Show available columns for debug
+
+# Debug: Show column names if key errors occur
+# st.write("Columns:", df.columns.tolist())
 
 # Sidebar for client selection
 client = st.sidebar.selectbox("Select Client", df['Client Name'].unique())
 selected = df[df['Client Name'] == client].iloc[0]
 
-# Helper function
-
+# Helper function to safely get percentage values
 def get_percentage(value):
     try:
         return float(str(value).replace('%', ''))
     except:
         return 0.0
 
-# Main title
+# Main display
 st.title(f"\U0001F4CA Client Overview: {client}")
 
-# Prepare data for display
-ac_capacity = selected.get('Installed Solar Capacity (AC)', None)
-
+# Prepare data for table display
 load_info = {
     "Parameter": [
         "Voltage Level",
@@ -61,31 +60,53 @@ load_info = {
     ]
 }
 
+# Solar AC/DC capacity — 2 decimal places
+solar_ac = selected.get('Installed Solar Capacity (AC)', np.nan)
+solar_dc = selected.get('Installed Solar Capacity (DC)', np.nan)
+
 solar_info = {
     "Parameter": [
         "Installed Solar Capacity (AC)",
         "Installed Solar Capacity (DC)",
         "Annual Setoff",
-        "Green Energy Contribution"
+        "Green Energy Contribution",
+        "Solar Utilization" if 'Solar Utilization' in selected else "",
+        "Solar ROI" if 'Solar ROI' in selected else ""
     ],
     "Value": [
-        f"{ac_capacity:,.0f} kW" if ac_capacity else "N/A",
-        f"{selected['Installed Solar Capacity (DC)']:,.0f} kW",
+        f"{solar_ac:,.2f} kW" if not pd.isna(solar_ac) else "",
+        f"{solar_dc:,.2f} kW" if not pd.isna(solar_dc) else "",
         f"{selected['Annual Setoff']:,.0f} kWh",
-        f"{get_percentage(selected['Percent Green Consumption'])*100:.2f}%"
+        f"{get_percentage(selected['Percent Green Consumption'])*100:.2f}%",
+        f"{get_percentage(selected['Solar Utilization']):.2f}%" if 'Solar Utilization' in selected else "",
+        f"{get_percentage(selected['Solar ROI']):.2f}%" if 'Solar ROI' in selected else ""
     ]
 }
 
-# Create DataFrames
 df_load = pd.DataFrame(load_info)
-df_solar = pd.DataFrame(solar_info)
+df_solar = pd.DataFrame(solar_info).dropna()
 
-# Display columns
-col1, col_sep, col2 = st.columns([6, 0.1, 6])
+# Columns for tables
+col1, col_sep, col2 = st.columns([6.5, 0.1, 6.5])
+
+# Table HTML styling with header fix
+table_style = """
+<style>
+th {
+    text-align: center !important;
+    background-color: #f0f2f6 !important;
+    color: black !important;
+}
+td {
+    text-align: left;
+}
+</style>
+"""
 
 with col1:
     st.subheader("\u26A1 Basic Load Information")
     st.markdown(
+        table_style +
         df_load.to_html(index=False, escape=False, formatters={
             "Value": lambda x: f"<span style='color:#e67300;font-weight:bold'>{x}</span>"
         }),
@@ -98,41 +119,39 @@ with col_sep:
 with col2:
     st.subheader("\U0001F31E Existing Solar Setup")
     st.markdown(
+        table_style +
         df_solar.to_html(index=False, escape=False, formatters={
             "Value": lambda x: f"<span style='color:#e67300;font-weight:bold'>{x}</span>"
-        }).replace('<th>', '<th style="text-align:center; background-color:#f2f2f2">'),
+        }),
         unsafe_allow_html=True
     )
 
 st.markdown("""<hr style="height:5px;border:none;color:#333;background-color:#333;" /> """, unsafe_allow_html=True)
 
-# ROI Analysis
+# --- ROI Analysis Section ---
 st.title("\U0001F4C8 ROI Analysis")
 
-# Sliders
 bess_pct = st.sidebar.slider("Select BESS Size (% of Solar)", 5, 30, 10)
 waiver_pct = st.sidebar.slider("Charge Waiver (%) with BESS", 75, 100, 75)
 
-# Constants
 capex_solar_per_mw = 3.5e6
 capex_bess_per_mw = 4.0e6
-solar_gen_per_mw = 16.5e5
-bess_impact_rate = 0.91 + 0.74
+solar_gen_per_mw = 16.5e5  # kWh/year
+bess_impact_rate = 0.91 + 0.74  # ₹/unit baseline charge
 wind_capex_per_mw = 6.5e6
 wind_gen_per_mw = 26.0e5
 
 try:
-    installed_solar_ac_mw = ac_capacity / 1000 if ac_capacity else 0
-
-    available_cd = selected['Contract Demand (kVA)']/1000 - installed_solar_ac_mw
-    available_sl = selected['Sanctioned Load (kVA)']/1000 - installed_solar_ac_mw
+    solar_ac_capacity = selected['Installed Solar Capacity (AC)'] / 1000  # in MW
+    available_cd = selected['Contract Demand (kVA)']/1000 - solar_ac_capacity
+    available_sl = selected['Sanctioned Load (kVA)']/1000 - solar_ac_capacity
 
     base_tariff = selected['Base Tariff']
 
     solar_to_cd_roi = ((available_cd * solar_gen_per_mw * base_tariff) / (available_cd * capex_solar_per_mw)) if available_cd > 0 else 0
     solar_to_sl_roi = ((available_sl * solar_gen_per_mw * base_tariff) / (available_sl * capex_solar_per_mw)) if available_sl > 0 else 0
 
-    bess_mw = installed_solar_ac_mw * bess_pct / 100
+    bess_mw = solar_ac_capacity * bess_pct / 100
     bess_waiver_saving = selected['Annual Consumption'] * (bess_impact_rate * waiver_pct / 100)
     bess_roi = (bess_waiver_saving / (bess_mw * capex_bess_per_mw)) if bess_mw > 0 else 0
 
@@ -144,13 +163,11 @@ except KeyError as e:
     st.error(f"Missing required data column: {e}")
     st.stop()
 
-# ROI table
 roi_data = pd.DataFrame({
     'Option': ['Solar to CD', 'Solar to SL', f'BESS ({bess_pct}%)', 'Wind'],
     'ROI (%)': [solar_to_cd_roi * 100, solar_to_sl_roi * 100, bess_roi * 100, wind_roi * 100]
 })
 
-# Chart
 chart = alt.Chart(roi_data).mark_bar().encode(
     x=alt.X('Option', sort=None),
     y='ROI (%)',
