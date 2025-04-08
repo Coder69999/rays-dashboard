@@ -46,17 +46,17 @@ col1, col_sep, col2 = st.columns([5, 0.5, 5])
 
 with col1:
     st.subheader("\u26A1 Basic Load Information")
-    st.markdown(f"**Voltage Level:** {red_text(selected['Voltage Level'])} kV", unsafe_allow_html=True)
-    st.markdown(f"**Sanctioned Load:** {red_text(f'{selected['Sanctioned Load (kVA)']:,.0f}')} kVA", unsafe_allow_html=True)
-    st.markdown(f"**Contract Demand:** {red_text(f'{selected['Contract Demand (kVA)']:,.0f}')} kVA", unsafe_allow_html=True)
+    st.markdown(f"**Voltage Level:** {red_text(f'{selected['Voltage Level']} kV')}", unsafe_allow_html=True)
+    st.markdown(f"**Sanctioned Load:** {red_text(f'{selected['Sanctioned Load (kVA)']:,.0f} kVA')}", unsafe_allow_html=True)
+    st.markdown(f"**Contract Demand:** {red_text(f'{selected['Contract Demand (kVA)']:,.0f} kVA')}", unsafe_allow_html=True)
     st.markdown(f"**Average Load Factor:** {red_text(f'{get_percentage(selected['Average Load Factor']*100):.2f}%')}", unsafe_allow_html=True)
-    st.markdown(f"**Annual Consumption:** {red_text(f'{selected['Annual Consumption']:,.0f}')} kWh", unsafe_allow_html=True)
+    st.markdown(f"**Annual Consumption:** {red_text(f'{selected['Annual Consumption']:,.0f} kWh')}", unsafe_allow_html=True)
 
     try:
         pm = get_percentage(selected['6-10 PM Consumption']) * 100
         am = get_percentage(selected['6-8 AM Consumption']) * 100
         total_peak = f"{pm + am:.2f}%"
-        st.markdown(f"**Peak Hour Consumption:** {red_text(total_peak)} (6-10 PM + 6-8 AM)", unsafe_allow_html=True)
+        st.markdown(f"**Peak Hour Consumption:** {red_text(f'{total_peak} (6-10 PM + 6-8 AM)')}", unsafe_allow_html=True)
     except:
         st.warning("Peak hour data not available.")
 
@@ -70,8 +70,8 @@ with col_sep:
 
 with col2:
     st.subheader("\U0001F31E Existing Solar Setup & Setoff")
-    st.markdown(f"**Installed Solar Capacity:** {red_text(f'{selected['Installed Solar Capacity (DC)']:,.0f}')} kW", unsafe_allow_html=True)
-    st.markdown(f"**Annual Setoff:** {red_text(f'{selected['Annual Setoff']:,.0f}')} kWh", unsafe_allow_html=True)
+    st.markdown(f"**Installed Solar Capacity:** {red_text(f'{selected['Installed Solar Capacity (DC)']:,.0f} kW')}", unsafe_allow_html=True)
+    st.markdown(f"**Annual Setoff:** {red_text(f'{selected['Annual Setoff']:,.0f} kWh')}", unsafe_allow_html=True)
     st.markdown(f"**Green Energy Contribution:** {red_text(f'{get_percentage(selected['Percent Green Consumption'])*100:.2f}%')}", unsafe_allow_html=True)
 
     if 'Solar Utilization' in selected:
