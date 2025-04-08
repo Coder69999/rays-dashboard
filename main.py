@@ -44,7 +44,7 @@ with col1:
     st.write(f"**Voltage Level:** {selected['Voltage Level']} kV")
     st.write(f"**Sanctioned Load:** {selected['Sanctioned Load (kVA)']:,.0f} kVA")
     st.write(f"**Contract Demand:** {selected['Contract Demand (kVA)']:,.0f} kVA")
-    st.write(f"**Average Load Factor:** {selected['Average Load Factor']:.2f}%")
+    st.write(f"**Average Load Factor:** {selected['Average Load Factor']*100:.2f}%")
     st.write(f"**Annual Consumption:** {selected['Annual Consumption']:,.0f} kWh")
 
     try:
