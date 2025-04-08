@@ -102,6 +102,8 @@ with col2:
 
 st.markdown("""<hr style="height:5px;border:none;color:#333;background-color:#333;" /> """, unsafe_allow_html=True)
 
+# ... (Previous code remains the same until the Opportunities Table section) ...
+
 # --- New Opportunities Table Section ---
 st.title("\U0001F4A1 Available Opportunities")
 
@@ -109,10 +111,15 @@ st.title("\U0001F4A1 Available Opportunities")
 solar_ac = selected.get('Installed Solar Capacity (AC)', 0)
 solar_dc = selected.get('Installed Solar Capacity (DC)', 0)
 contract_demand = selected['Contract Demand (kVA)']
+sanctioned_load = selected['Sanctioned Load (kVA)']
 
-# Calculate available contract demand
+# Calculate available contract demand (Opportunity 1)
 available_cd_ac = contract_demand - solar_ac
 available_cd_pct = (available_cd_ac / contract_demand) * 100 if contract_demand > 0 else 0
+
+# Calculate available sanctioned load capacity (Opportunity 2)
+available_sl_ac = sanctioned_load - solar_ac
+available_sl_pct = (available_sl_ac / contract_demand) * 100 if contract_demand > 0 else 0
 
 # Prepare opportunities data
 opportunities = []
@@ -135,44 +142,70 @@ else:
         "Status": "Not Viable"
     })
 
-# Add other opportunities (placeholders for now)
-opportunities.append({
-    "Opportunity": "Solar to Sanctioned Load",
-    "Available AC Capacity (kW)": "To be calculated",
-    "Recommended DC Capacity (kW)": "To be calculated",
-    "Status": "Pending"
-})
+# Opportunity 2: Increase Contract Demand to Sanctioned Load + Solar
+if (sanctioned_load > contract_demand) and (available_sl_pct >= 20):
+    opportunity2_ac = available_sl_ac
+    opportunity2_dc = available_sl_ac * 1.4
+    opportunities.append({
+        "Opportunity": "Increase CD to SL + Solar",
+        "Available AC Capacity (kW)": f"{opportunity2_ac:,.2f}",
+        "Recommended DC Capacity (kW)": f"{opportunity2_dc:,.2f}",
+        "Status": "Available" if opportunity2_ac > 0 else "Not Available",
+        "CD Increase Required": f"{(sanctioned_load - contract_demand):,.2f} kVA"
+    })
+else:
+    reason = ""
+    if sanctioned_load <= contract_demand:
+        reason = "Sanctioned load ≤ Current CD"
+    else:
+        reason = "Available capacity < 20% of CD"
+    
+    opportunities.append({
+        "Opportunity": "Increase CD to SL + Solar",
+        "Available AC Capacity (kW)": f"{available_sl_ac:,.2f}",
+        "Recommended DC Capacity (kW)": f"N/A ({reason})",
+        "Status": "Not Viable",
+        "CD Increase Required": f"{(sanctioned_load - contract_demand):,.2f} kVA" if sanctioned_load > contract_demand else "N/A"
+    })
 
+# Add other opportunities (placeholders for now)
 opportunities.append({
     "Opportunity": "BESS Installation",
     "Available AC Capacity (kW)": "Based on solar",
     "Recommended DC Capacity (kW)": "Based on % selected",
-    "Status": "Pending"
+    "Status": "Pending",
+    "CD Increase Required": "N/A"
 })
 
 opportunities.append({
     "Opportunity": "Wind Installation",
     "Available AC Capacity (kW)": "Based on contract demand",
     "Recommended DC Capacity (kW)": "N/A",
-    "Status": "Pending"
+    "Status": "Pending",
+    "CD Increase Required": "N/A"
 })
 
 # Create and display opportunities table
 df_opportunities = pd.DataFrame(opportunities)
 
+# Reorder columns to make CD Increase Required appear after Status
+df_opportunities = df_opportunities[['Opportunity', 'Available AC Capacity (kW)', 
+                                   'Recommended DC Capacity (kW)', 'Status', 
+                                   'CD Increase Required']]
+
 st.markdown(
     df_opportunities.to_html(index=False, escape=False, formatters={
         "Available AC Capacity (kW)": lambda x: f"<span style='color:#0066cc;font-weight:bold'>{x}</span>",
         "Recommended DC Capacity (kW)": lambda x: f"<span style='color:#009933;font-weight:bold'>{x}</span>",
-        "Status": lambda x: f"<span style='color:{"green" if x in ["Available"] else "orange" if x == "Pending" else "red"};font-weight:bold'>{x}</span>"
+        "Status": lambda x: f"<span style='color:{"green" if x in ["Available"] else "orange" if x == "Pending" else "red"};font-weight:bold'>{x}</span>",
+        "CD Increase Required": lambda x: f"<span style='color:#9900cc;font-weight:bold'>{x}</span>"
     }).replace(
         '<th>', '<th style="text-align:center; background-color:#f0f0f0; color:#000;">'
     ),
     unsafe_allow_html=True
 )
 
-st.markdown("""<hr style="height:5px;border:none;color:#333;background-color:#333;" /> """, unsafe_allow_html=True)
-
+# ... (Rest of the code remains the same) ...
 # ROI Analysis
 st.title("\U0001F4C8 ROI Analysis")
 
