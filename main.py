@@ -36,23 +36,22 @@ def get_percentage(value):
 # Main display
 st.title(f"📊 Client Overview: {client}")
 
-# First section - Basic info (grouped together)
-st.subheader("Basic Information")
-col1, col2, col3 = st.columns(3)
+# Create two main columns with a vertical separator
+col1, separator, col2 = st.columns([5, 1, 5])
+
+# Left column - Basic and Load Information
 with col1:
+    # Basic Information section
+    st.subheader("Basic Information")
     st.write(f"**Voltage Level**  \n{selected['Voltage Level']} kV")
-with col2:
     st.write(f"**Sanctioned Load**  \n{selected['Sanctioned Load (kVA)']:,.0f} kVA")
-with col3:
     st.write(f"**Contract Demand**  \n{selected['Contract Demand (kVA)']:,.0f} kVA")
-
-# Horizontal separator line after Basic Info
-st.markdown("""<hr style="height:5px;border:none;color:#333;background-color:#333;" /> """, unsafe_allow_html=True)
-
-# Second section - Load and consumption
-st.subheader("Load Information")
-col1, col2 = st.columns(2)
-with col1:
+    
+    # Horizontal separator
+    st.markdown("""<hr style="height:2px;border:none;color:#333;background-color:#333;" /> """, unsafe_allow_html=True)
+    
+    # Load Information section
+    st.subheader("Load Information")
     st.write(f"**Average Load Factor**  \n{get_percentage(selected['Average Load Factor']):.2f}%")
     st.write(f"**Annual Consumption**  \n{selected['Annual Consumption']:,.0f} kWh")
     
@@ -65,20 +64,45 @@ with col1:
     except KeyError as e:
         st.error(f"Missing data column: {e}")
 
-# Horizontal separator line after Load Info
-st.markdown("""<hr style="height:5px;border:none;color:#333;background-color:#333;" /> """, unsafe_allow_html=True)
+# Vertical separator
+with separator:
+    st.markdown(
+        """
+        <style>
+        .vertical-line {
+            border-left: 3px solid #333;
+            height: 500px;
+            margin-left: 10px;
+            margin-right: 10px;
+        }
+        </style>
+        <div class="vertical-line"></div>
+        """,
+        unsafe_allow_html=True
+    )
 
-# Third section - Solar metrics
-st.subheader("Solar Information")
-col1, col2, col3 = st.columns(3)
-with col1:
-    st.write(f"**Installed Solar**  \n{selected['Installed Solar Capacity (DC)']} kW")
+# Right column - Solar Information
 with col2:
-    st.write(f"**Annual Setoff**  \n{selected['Annual Setoff']:,.0f} kWh")
-with col3:
-    st.write(f"**Green %**  \n{get_percentage(selected['Percent Green Consumption']):.2f}%")
+    st.subheader("Solar Setup & Setoff")
+    
+    # Solar metrics in a more compact layout
+    st.write(f"**Installed Solar Capacity**  \n{selected['Installed Solar Capacity (DC)']} kW")
+    st.write(f"**Annual Solar Generation**  \n{selected['Annual Setoff']:,.0f} kWh")
+    st.write(f"**Green Energy Percentage**  \n{get_percentage(selected['Percent Green Consumption']):.2f}%")
+    
+    # Add some visual spacing
+    st.markdown("<br>", unsafe_allow_html=True)
+    
+    # Additional solar metrics if available
+    try:
+        if 'Solar Utilization' in selected:
+            st.write(f"**Solar Utilization**  \n{get_percentage(selected['Solar Utilization']):.2f}%")
+        if 'Solar ROI' in selected:
+            st.write(f"**Solar ROI**  \n{get_percentage(selected['Solar ROI']):.2f}%")
+    except:
+        pass
 
-# Horizontal separator line after Solar Info
+# Horizontal separator line after main sections
 st.markdown("""<hr style="height:5px;border:none;color:#333;background-color:#333;" /> """, unsafe_allow_html=True)
 
 # --- ROI Analysis Section ---
