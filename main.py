@@ -22,19 +22,30 @@ df = load_data()
 client = st.sidebar.selectbox("Select Client", df['Client Name'].unique())
 selected = df[df['Client Name'] == client].iloc[0]
 
+# Helper function
 def get_percentage(value):
     try:
         return float(str(value).replace('%', ''))
     except:
         return 0.0
 
+# Color function
 def soft_color_text(val):
     return f"<span style='color:#e67300;font-weight:bold'>{val}</span>"
+
+# Custom CSS to remove horizontal padding
+st.markdown("""
+    <style>
+        .main .block-container {
+            padding-left: 1.5rem;
+            padding-right: 1.5rem;
+        }
+    </style>
+""", unsafe_allow_html=True)
 
 # Main display
 st.title(f"\U0001F4CA Client Overview: {client}")
 
-# Create two main columns with reduced padding again
 col1, col_sep, col2 = st.columns([6, 0.1, 6])
 
 with col1:
@@ -53,10 +64,7 @@ with col1:
         st.warning("Peak hour data not available.")
 
 with col_sep:
-    st.markdown(
-        "<div style='height:100%; border-left: 3px solid #bbb;'></div>",
-        unsafe_allow_html=True,
-    )
+    st.markdown("<div style='height:100%; border-left: 3px solid #bbb;'></div>", unsafe_allow_html=True)
 
 with col2:
     st.subheader("\U0001F31E Existing Solar Setup & Setoff")
@@ -70,7 +78,7 @@ with col2:
 
 st.markdown("""<hr style="height:5px;border:none;color:#333;background-color:#333;" /> """, unsafe_allow_html=True)
 
-# ROI Analysis Section
+# --- ROI Analysis Section ---
 st.title("\U0001F4C8 ROI Analysis")
 
 bess_pct = st.sidebar.slider("Select BESS Size (% of Solar)", 5, 30, 10)
