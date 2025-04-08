@@ -209,8 +209,7 @@ st.markdown(
 # ROI Analysis
 # ... (All previous code remains the same until the ROI Analysis section) ...
 
-# ROI Analysis
-st.title("\U0001F4C8 ROI Analysis")
+
 
 # New BESS capacity slider with multiples of 5%
 # ... (All previous code remains the same until the ROI Analysis section) ...
