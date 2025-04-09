@@ -2,26 +2,48 @@ import streamlit as st
 import pandas as pd
 import numpy as np
 import altair as alt
-import locale
 
-# Set locale for Indian number formatting
-try:
-    locale.setlocale(locale.LC_NUMERIC, 'en_IN')
-except:
-    # Fallback if Indian locale not available
-    locale.setlocale(locale.LC_NUMERIC, '')
-
-# Custom Indian number formatter
-def format_indian(number):
+def format_indian(t):
+    """Indian number formatting with commas"""
     try:
-        # For numbers with decimal places
-        if isinstance(number, float) and not number.is_integer():
-            return locale.format_string("%.2f", number, grouping=True)
-        # For integers
+        t = float(t)
+        if t.is_integer():
+            t = int(t)
+        
+        s = str(t).split('.')
+        if len(s) == 1:
+            # Integer
+            s = s[0]
+            if len(s) > 3:
+                last_three = s[-3:]
+                other_numbers = s[:-3]
+                res = ""
+                while len(other_numbers) > 2:
+                    res = "," + other_numbers[-2:] + res
+                    other_numbers = other_numbers[:-2]
+                if other_numbers:
+                    res = other_numbers + res
+                return res + "," + last_three
+            else:
+                return s
         else:
-            return locale.format_string("%d", number, grouping=True)
+            # Float
+            before_decimal = s[0]
+            after_decimal = s[1][:2]  # Take only 2 decimal places
+            if len(before_decimal) > 3:
+                last_three = before_decimal[-3:]
+                other_numbers = before_decimal[:-3]
+                res = ""
+                while len(other_numbers) > 2:
+                    res = "," + other_numbers[-2:] + res
+                    other_numbers = other_numbers[:-2]
+                if other_numbers:
+                    res = other_numbers + res
+                return res + "," + last_three + "." + after_decimal
+            else:
+                return before_decimal + "." + after_decimal
     except:
-        return str(number)
+        return str(t)
 
 # Load and clean data
 @st.cache_data
