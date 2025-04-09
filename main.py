@@ -96,25 +96,37 @@ def main():
         ]
     }
 
-    # Display Tables
-    col1, col_sep, col2 = st.columns([6, 0.1, 6])
-    with col1:
-        st.subheader("\u26A1 Basic Load Information")
-        st.markdown(pd.DataFrame(load_info).to_html(
-            index=False, escape=False,
+   # Display side-by-side tables
+col1, col_sep, col2 = st.columns([6, 0.1, 6])
+
+with col1:
+    st.subheader("\u26A1 Basic Load Information")
+    st.markdown(
+        pd.DataFrame(load_info).to_html(
+            index=False, 
+            escape=False,
             formatters={"Value": lambda x: f"<span style='color:#e67300;font-weight:bold'>{x}</span>"}
-            .replace('<th>', '<th style="text-align:center; background-color:#f0f0f0; color:#000;">'),
-            unsafe_allow_html=True
-        )
-    
-    with col2:
-        st.subheader("\U0001F31E Existing Solar Setup")
-        st.markdown(pd.DataFrame(solar_info).to_html(
-            index=False, escape=False,
+        ).replace(
+            '<th>', '<th style="text-align:center; background-color:#f0f0f0; color:#000;">'
+        ),
+        unsafe_allow_html=True
+    )
+
+with col_sep:
+    st.markdown("<div style='height:100%; border-left: 3px solid #bbb;'></div>", unsafe_allow_html=True)
+
+with col2:
+    st.subheader("\U0001F31E Existing Solar Setup")
+    st.markdown(
+        pd.DataFrame(solar_info).to_html(
+            index=False, 
+            escape=False,
             formatters={"Value": lambda x: f"<span style='color:#e67300;font-weight:bold'>{x}</span>"}
-            .replace('<th>', '<th style="text-align:center; background-color:#f0f0f0; color:#000;">'),
-            unsafe_allow_html=True
-        )
+        ).replace(
+            '<th>', '<th style="text-align:center; background-color:#f0f0f0; color:#000;">'
+        ),
+        unsafe_allow_html=True
+    )
 
     st.markdown("""<hr style="height:5px;border:none;color:#333;background-color:#333;" />""", unsafe_allow_html=True)
 
