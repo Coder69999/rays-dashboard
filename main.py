@@ -2,6 +2,26 @@ import streamlit as st
 import pandas as pd
 import numpy as np
 import altair as alt
+import locale
+
+# Set locale for Indian number formatting
+try:
+    locale.setlocale(locale.LC_NUMERIC, 'en_IN')
+except:
+    # Fallback if Indian locale not available
+    locale.setlocale(locale.LC_NUMERIC, '')
+
+# Custom Indian number formatter
+def format_indian(number):
+    try:
+        # For numbers with decimal places
+        if isinstance(number, float) and not number.is_integer():
+            return locale.format_string("%.2f", number, grouping=True)
+        # For integers
+        else:
+            return locale.format_string("%d", number, grouping=True)
+    except:
+        return str(number)
 
 # Load and clean data
 @st.cache_data
@@ -44,10 +64,10 @@ load_info = {
     ],
     "Value": [
         f"{selected['Voltage Level']} kV",
-        f"{selected['Sanctioned Load (mVA)']:,.2f} mVA",
-        f"{selected['Contract Demand (mVA)']:,.2f} mVA",
+        f"{format_indian(selected['Sanctioned Load (mVA)'])} mVA",
+        f"{format_indian(selected['Contract Demand (mVA)'])} mVA",
         f"{get_percentage(selected['Average Load Factor']*100):.2f}%",
-        f"{selected['Annual Consumption']:,.0f} kWh",
+        f"{format_indian(selected['Annual Consumption'])} kWh",
         f"{get_percentage(selected['6-10 PM Consumption'])*100 + get_percentage(selected['6-8 AM Consumption'])*100:.2f}% (6-10 PM + 6-8 AM)"
     ]
 }
@@ -60,11 +80,10 @@ solar_info = {
         "Annual Setoff",
         "Green Energy Contribution"
     ],
-    
     "Value": [
-        f"{selected.get('Installed Solar Capacity (AC)', 0):,.2f} MW",
-        f"{selected.get('Installed Solar Capacity (DC)', 0):,.2f} MWp",
-        f"{selected['Annual Setoff']:,.0f} kWh",
+        f"{format_indian(selected.get('Installed Solar Capacity (AC)', 0))} MW",
+        f"{format_indian(selected.get('Installed Solar Capacity (DC)', 0))} MWp",
+        f"{format_indian(selected['Annual Setoff'])} kWh",
         f"{get_percentage(selected['Percent Green Consumption']*100):.2f}%"
     ]
 }
@@ -128,14 +147,14 @@ if available_cd_pct >= 20:  # Only show if at least 20% available
     opportunity1_dc = available_cd_ac * 1.4  # DC is 1.4 times AC
     opportunities.append({
         "Opportunity": "Solar to Contract Demand",
-        "Available AC Capacity (kW)": f"{opportunity1_ac:,.2f}",
-        "Recommended DC Capacity (kW)": f"{opportunity1_dc:,.2f}",
+        "Available AC Capacity (kW)": f"{format_indian(opportunity1_ac)}",
+        "Recommended DC Capacity (kW)": f"{format_indian(opportunity1_dc)}",
         "Status": "Available" if opportunity1_ac > 0 else "Not Available"
     })
 else:
     opportunities.append({
         "Opportunity": "Solar to Contract Demand",
-        "Available AC Capacity (kW)": f"{available_cd_ac:,.2f}",
+        "Available AC Capacity (kW)": f"{format_indian(available_cd_ac)}",
         "Recommended DC Capacity (kW)": "N/A (Less than 20% available)",
         "Status": "Not Viable"
     })
@@ -146,10 +165,10 @@ if (sanctioned_load > contract_demand) and (available_sl_pct >= 20):
     opportunity2_dc = available_sl_ac * 1.4
     opportunities.append({
         "Opportunity": "Increase CD to SL + Solar",
-        "Available AC Capacity (kW)": f"{opportunity2_ac:,.2f}",
-        "Recommended DC Capacity (kW)": f"{opportunity2_dc:,.2f}",
+        "Available AC Capacity (kW)": f"{format_indian(opportunity2_ac)}",
+        "Recommended DC Capacity (kW)": f"{format_indian(opportunity2_dc)}",
         "Status": "Available" if opportunity2_ac > 0 else "Not Available",
-        "CD Increase Required": f"{(sanctioned_load - contract_demand):,.2f} mVA"
+        "CD Increase Required": f"{format_indian(sanctioned_load - contract_demand)} mVA"
     })
 else:
     reason = ""
@@ -160,10 +179,10 @@ else:
     
     opportunities.append({
         "Opportunity": "Increase CD to SL + Solar",
-        "Available AC Capacity (kW)": f"{available_sl_ac:,.2f}",
+        "Available AC Capacity (kW)": f"{format_indian(available_sl_ac)}",
         "Recommended DC Capacity (kW)": f"N/A ({reason})",
         "Status": "Not Viable",
-        "CD Increase Required": f"{(sanctioned_load - contract_demand):,.2f} mVA" if sanctioned_load > contract_demand else "N/A"
+        "CD Increase Required": f"{format_indian(sanctioned_load - contract_demand)} mVA" if sanctioned_load > contract_demand else "N/A"
     })
 
 # Add other opportunities (placeholders for now)
