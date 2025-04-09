@@ -56,7 +56,6 @@ def load_data():
             df[col] = df[col].astype(str).str.replace('%', '').astype(float)
     return df
 
-# --- MAIN APPLICATION ---
 def main():
     df = load_data()
     client = st.sidebar.selectbox("Select Client", df['Client Name'].unique())
@@ -96,37 +95,36 @@ def main():
         ]
     }
 
-   # Display side-by-side tables
-col1, col_sep, col2 = st.columns([6, 0.1, 6])
+    # Display Tables
+    col1, col_sep, col2 = st.columns([6, 0.1, 6])
+    with col1:
+        st.subheader("\u26A1 Basic Load Information")
+        st.markdown(
+            pd.DataFrame(load_info).to_html(
+                index=False, 
+                escape=False,
+                formatters={"Value": lambda x: f"<span style='color:#e67300;font-weight:bold'>{x}</span>"}
+            ).replace(
+                '<th>', '<th style="text-align:center; background-color:#f0f0f0; color:#000;">'
+            ),
+            unsafe_allow_html=True
+        )
+    
+    with col_sep:
+        st.markdown("<div style='height:100%; border-left: 3px solid #bbb;'></div>", unsafe_allow_html=True)
 
-with col1:
-    st.subheader("\u26A1 Basic Load Information")
-    st.markdown(
-        pd.DataFrame(load_info).to_html(
-            index=False, 
-            escape=False,
-            formatters={"Value": lambda x: f"<span style='color:#e67300;font-weight:bold'>{x}</span>"}
-        ).replace(
-            '<th>', '<th style="text-align:center; background-color:#f0f0f0; color:#000;">'
-        ),
-        unsafe_allow_html=True
-    )
-
-with col_sep:
-    st.markdown("<div style='height:100%; border-left: 3px solid #bbb;'></div>", unsafe_allow_html=True)
-
-with col2:
-    st.subheader("\U0001F31E Existing Solar Setup")
-    st.markdown(
-        pd.DataFrame(solar_info).to_html(
-            index=False, 
-            escape=False,
-            formatters={"Value": lambda x: f"<span style='color:#e67300;font-weight:bold'>{x}</span>"}
-        ).replace(
-            '<th>', '<th style="text-align:center; background-color:#f0f0f0; color:#000;">'
-        ),
-        unsafe_allow_html=True
-    )
+    with col2:
+        st.subheader("\U0001F31E Existing Solar Setup")
+        st.markdown(
+            pd.DataFrame(solar_info).to_html(
+                index=False, 
+                escape=False,
+                formatters={"Value": lambda x: f"<span style='color:#e67300;font-weight:bold'>{x}</span>"}
+            ).replace(
+                '<th>', '<th style="text-align:center; background-color:#f0f0f0; color:#000;">'
+            ),
+            unsafe_allow_html=True
+        )
 
     st.markdown("""<hr style="height:5px;border:none;color:#333;background-color:#333;" />""", unsafe_allow_html=True)
 
@@ -146,16 +144,16 @@ with col2:
     if available_cd_pct >= 20:
         opportunities.append({
             "Opportunity": "Solar to Contract Demand",
-            "Available AC Capacity": f"{format_indian(available_cd_ac)}",
-            "Recommended DC Capacity": f"{format_indian(available_cd_ac * 1.4)}",
+            "Available AC Capacity (kW)": f"{format_indian(available_cd_ac)}",
+            "Recommended DC Capacity (kW)": f"{format_indian(available_cd_ac * 1.4)}",
             "Status": "Available",
             "CD Increase Required": "N/A"
         })
     else:
         opportunities.append({
             "Opportunity": "Solar to Contract Demand",
-            "Available AC Capacity": f"{format_indian(available_cd_ac)}",
-            "Recommended DC Capacity": "N/A (Less than 20%)",
+            "Available AC Capacity (kW)": f"{format_indian(available_cd_ac)}",
+            "Recommended DC Capacity (kW)": "N/A (Less than 20%)",
             "Status": "Not Viable",
             "CD Increase Required": "N/A"
         })
@@ -166,8 +164,8 @@ with col2:
     if (sanctioned_load > contract_demand) and (available_sl_pct >= 20):
         opportunities.append({
             "Opportunity": "Increase CD to SL + Solar",
-            "Available AC Capacity": f"{format_indian(available_sl_ac)}",
-            "Recommended DC Capacity": f"{format_indian(available_sl_ac * 1.4)}",
+            "Available AC Capacity (kW)": f"{format_indian(available_sl_ac)}",
+            "Recommended DC Capacity (kW)": f"{format_indian(available_sl_ac * 1.4)}",
             "Status": "Available",
             "CD Increase Required": f"{format_indian(sanctioned_load - contract_demand)} mVA"
         })
@@ -175,8 +173,8 @@ with col2:
         reason = "Sanctioned load ≤ Current CD" if sanctioned_load <= contract_demand else "Available capacity < 20%"
         opportunities.append({
             "Opportunity": "Increase CD to SL + Solar",
-            "Available AC Capacity": f"{format_indian(available_sl_ac)}",
-            "Recommended DC Capacity": f"N/A ({reason})",
+            "Available AC Capacity (kW)": f"{format_indian(available_sl_ac)}",
+            "Recommended DC Capacity (kW)": f"N/A ({reason})",
             "Status": "Not Viable",
             "CD Increase Required": f"{format_indian(sanctioned_load - contract_demand)} mVA" if sanctioned_load > contract_demand else "N/A"
         })
@@ -185,28 +183,38 @@ with col2:
     opportunities.extend([
         {
             "Opportunity": "BESS Installation",
-            "Available AC Capacity": "Based on solar",
-            "Recommended DC Capacity": "Based on % selected",
+            "Available AC Capacity (kW)": "Based on solar",
+            "Recommended DC Capacity (kW)": "Based on % selected",
             "Status": "Pending",
             "CD Increase Required": "N/A"
         },
         {
             "Opportunity": "Wind Installation",
-            "Available AC Capacity": "Based on contract demand",
-            "Recommended DC Capacity": "N/A",
+            "Available AC Capacity (kW)": "Based on contract demand",
+            "Recommended DC Capacity (kW)": "N/A",
             "Status": "Pending",
             "CD Increase Required": "N/A"
         }
     ])
 
-    st.markdown(pd.DataFrame(opportunities).to_html(
-        index=False, escape=False,
-        formatters={
-            "Available AC Capacity": lambda x: f"<span style='color:#0066cc;font-weight:bold'>{x}</span>",
-            "Recommended DC Capacity": lambda x: f"<span style='color:#009933;font-weight:bold'>{x}</span>",
-            "Status": lambda x: f"<span style='color:{"green" if x=="Available" else "orange" if x=="Pending" else "red"};font-weight:bold'>{x}</span>",
-            "CD Increase Required": lambda x: f"<span style='color:#9900cc;font-weight:bold'>{x}</span>"
-        }.replace('<th>', '<th style="text-align:center; background-color:#f0f0f0; color:#000;">'),
+    # Display Opportunities Table
+    df_opportunities = pd.DataFrame(opportunities)[['Opportunity', 'Available AC Capacity (kW)', 
+                                                  'Recommended DC Capacity (kW)', 'Status', 
+                                                  'CD Increase Required']]
+
+    st.markdown(
+        df_opportunities.to_html(
+            index=False, 
+            escape=False,
+            formatters={
+                "Available AC Capacity (kW)": lambda x: f"<span style='color:#0066cc;font-weight:bold'>{x}</span>",
+                "Recommended DC Capacity (kW)": lambda x: f"<span style='color:#009933;font-weight:bold'>{x}</span>",
+                "Status": lambda x: f"<span style='color:{"green" if x=="Available" else "orange" if x=="Pending" else "red"};font-weight:bold'>{x}</span>",
+                "CD Increase Required": lambda x: f"<span style='color:#9900cc;font-weight:bold'>{x}</span>"
+            }
+        ).replace(
+            '<th>', '<th style="text-align:center; background-color:#f0f0f0; color:#000;">'
+        ),
         unsafe_allow_html=True
     )
 
@@ -239,10 +247,14 @@ with col2:
     }
     
     try:
+        available_cd = contract_demand/1000 - solar_ac/1000
+        available_sl = selected['Sanctioned Load (mVA)']/1000 - solar_ac/1000
+        base_tariff = selected['Base Tariff']
+
         # Solar ROI Calculations
-        solar_to_cd_roi = ((available_cd * generation['solar'] * selected['Base Tariff']) / 
+        solar_to_cd_roi = ((available_cd * generation['solar'] * base_tariff) / 
                          (available_cd * capex['solar'])) if available_cd > 0 else 0
-        solar_to_sl_roi = ((available_sl * generation['solar'] * selected['Base Tariff']) / 
+        solar_to_sl_roi = ((available_sl * generation['solar'] * base_tariff) / 
                          (available_sl * capex['solar'])) if available_sl > 0 else 0
         
         # BESS ROI Calculation
@@ -251,7 +263,7 @@ with col2:
                    (bess_mw * capex['bess'])) if bess_mw > 0 else 0
         
         # Wind ROI Calculation
-        wind_roi = (contract_demand/1000 * generation['wind'] * selected['Base Tariff'] / 
+        wind_roi = (contract_demand/1000 * generation['wind'] * base_tariff / 
                    (contract_demand/1000 * capex['wind']))
         
         # Display Results
